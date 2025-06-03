@@ -5,7 +5,7 @@
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
     <Authors>smrkn</Authors>
-    <Version>1.0.0</Version>
+    <Version>0.1.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -34,4 +34,29 @@
         <HintPath>../deps/Steamworks/Facepunch.Steamworks.Win64.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <PropertyGroup>
+      <PackageDir Condition="'$(PackageDir)' == ''">$([System.IO.Path]::Combine($(OutputPath),'package'))/</PackageDir>
+      <PackagePath Condition="'$(PackagePath)' == ''">$([System.IO.Path]::Combine($(PackageDir),'$(AssemblyName)-v$(Version).zip'))</PackagePath>
+  </PropertyGroup>
+
+  <Target Name="PackageClean" AfterTargets="Clean">
+      <Delete Files="$(PackagePath)" />
+  </Target>
+
+  <Target Name="Thunderstore" AfterTargets="Publish">
+      <MakeDir Directories="$(PackageDir)" />
+
+      <ItemGroup>
+          <FilesToDelete Include="$(PublishDir)**\*" Exclude="$(PublishDir)/$(AssemblyName).dll"/>
+      </ItemGroup>
+      <Delete Files="@(FilesToDelete)" />
+      <Move SourceFiles="$(PublishDir)/$(AssemblyName).dll" DestinationFolder="$(PublishDir)/BepInEx/plugins" />
+
+      <Copy SourceFiles="$(MSBuildProjectDirectory)/../README.md" DestinationFolder="$(PublishDir)" />
+      <Copy SourceFiles="$(MSBuildProjectDirectory)/manifest.json" DestinationFolder="$(PublishDir)" />
+      <Copy SourceFiles="$(MSBuildProjectDirectory)/../icon.png" DestinationFolder="$(PublishDir)" />
+
+      <ZipDirectory Overwrite="true" SourceDirectory="$(MSBuildProjectDirectory)/$(PublishDir)" DestinationFile="$(PackagePath)" />
+  </Target>
 </Project>

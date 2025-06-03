@@ -1,0 +1,11 @@
+
+{
+    "namespace": "smrkn",
+    "name": "SteamDeathCapture",
+    "description": "Records player deaths using Steam's Game Recording feature.",
+    "version_number": "0.1.0",
+    "website_url": "https://github.com/csh/repo-death-capture",
+    "dependencies": [
+        "smrkn-SteamApiPatcher-0.1.0"
+    ]
+}
