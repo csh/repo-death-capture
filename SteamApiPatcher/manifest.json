@@ -1,0 +1,8 @@
+
+{
+    "namespace": "smrkn",
+    "name": "SteamApiPatcher",
+    "description": "Upgrades the Steam API to v161 & Facepunch Steamworks to 2.4.1",
+    "version_number": "0.1.0",
+    "website_url": "https://github.com/csh/repo-death-capture"
+}

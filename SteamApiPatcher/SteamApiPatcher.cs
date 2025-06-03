@@ -39,24 +39,14 @@ public class Patcher
 
     public static void Initialize()
     {
-        // var existingSteamDll = Native.GetModuleHandle("steam_api64.dll");
-        // if (existingSteamDll != IntPtr.Zero)
-        // {
-        //     Logger.LogInfo("steam_api64.dll is already loaded, attempting to free it.");
-        //     if (!Native.FreeLibrary(existingSteamDll))
-        //     {
-        //         Logger.LogError("Failed to free steam_api64.dll");
-        //     }
-        // }
+        string steamDllPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "steam_api64.dll");
 
-        // string steamDllPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "steam_api64.dll");
-
-        // Logger.LogInfo("Attempting to patch steam_api64.dll");
-        // var steamDll = Native.LoadLibrary(steamDllPath);
-        // if (steamDll == IntPtr.Zero)
-        // {
-        //     Logger.LogError("Failed to load steam_api64.dll");
-        // }
+        Logger.LogInfo("Attempting to patch steam_api64.dll");
+        var steamDll = Native.LoadLibrary(steamDllPath);
+        if (steamDll == IntPtr.Zero)
+        {
+            Logger.LogError("Failed to load steam_api64.dll");
+        }
     }
 
     public static void Patch(ref AssemblyDefinition assembly)
