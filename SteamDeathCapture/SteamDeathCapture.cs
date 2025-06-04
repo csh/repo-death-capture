@@ -1,9 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
-using Steamworks;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace SteamDeathCapture;
 
@@ -27,18 +25,6 @@ public class SteamDeathCapture : BaseUnityPlugin
         Patch();
 
         Logger.LogInfo($"{Info.Metadata.GUID} v{Info.Metadata.Version} has loaded!");
-
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        if (scene.name.Contains("Lobby"))
-        {
-            SteamTimeline.EndGamePhase();
-            SteamTimeline.ClearTimelineTooltip(0);
-            SteamTimeline.SetTimelineGameMode(TimelineGameMode.Staging);
-        }
     }
 
     internal void Patch()
@@ -50,10 +36,5 @@ public class SteamDeathCapture : BaseUnityPlugin
     internal void Unpatch()
     {
         Harmony?.UnpatchSelf();
-    }
-
-    private void Update()
-    {
-        // Code that runs every frame goes here
     }
 }

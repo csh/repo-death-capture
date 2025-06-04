@@ -7,17 +7,10 @@ using System.Runtime.InteropServices;
 using BepInEx.Logging;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using MonoMod.Utils;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
 using ParameterAttributes = Mono.Cecil.ParameterAttributes;
 
 namespace SteamApiPatcher;
-
-internal static class Native
-{
-    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    internal static extern IntPtr LoadLibrary(string libname);
-}
 
 public class Patcher
 {
@@ -37,15 +30,22 @@ public class Patcher
         Logger.LogInfo($"Initializing {NAME} v{VERSION}");
     }
 
+    [DllImport("kernel32", SetLastError = true)]
+    static extern IntPtr LoadLibrary(string lpFileName);
+
     public static void Initialize()
     {
-        string steamDllPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "steam_api64.dll");
+        string steamDllPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "steam_api64_v161.dll");
 
         Logger.LogInfo("Attempting to patch steam_api64.dll");
-        var steamDll = Native.LoadLibrary(steamDllPath);
+        var steamDll = LoadLibrary(steamDllPath);
         if (steamDll == IntPtr.Zero)
         {
             Logger.LogError("Failed to load steam_api64.dll");
+        }
+        else
+        {
+            Logger.LogInfo("Newer steam_api64.dll loaded successfully.");
         }
     }
 
@@ -58,14 +58,67 @@ public class Patcher
 
         AssemblyDefinition replacement = AssemblyDefinition.ReadAssembly(_patched);
 
+        // Eagerly patch Steam DllImport
+        // If this function fails, the rest of the patch won't apply and Facepunch will still load like normal.
+        PatchSteamImports(replacement);
+        
         PatchConnectionManager(replacement);
         PatchSocketManager(replacement);
         PatchSteamUser(replacement);
         PatchConnection(replacement);
 
         replacement.Name = assembly.Name;
+
+        replacement.Write(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "patchwork.dll"));
         assembly = replacement;
         Logger.LogInfo("Facepunch.Steamworks.Win64.dll patched successfully.");
+    }
+
+    static int PatchAllNestedTypes(TypeDefinition type)
+    {
+        int count = 0;
+        foreach (var method in type.Methods)
+        {
+            var pinvoke = method.PInvokeInfo;
+            if (pinvoke == null || pinvoke.Module == null) continue;
+
+            var moduleName = pinvoke.Module?.Name;
+            if (string.Equals(moduleName, "steam_api64", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(moduleName, "steam_api64.dll", StringComparison.OrdinalIgnoreCase))
+            {
+                pinvoke.Module!.Name = "steam_api64_v161";
+                count++;
+            }
+        }
+
+        foreach (var nested in type.NestedTypes)
+        {
+            count += PatchAllNestedTypes(nested);
+        }
+
+        return count;
+    }
+
+    private static void PatchSteamImports(AssemblyDefinition assembly)
+    {
+        var module = assembly.MainModule;
+
+        int patched = 0;
+
+        foreach (var type in module.Types)
+        {
+            patched += PatchAllNestedTypes(type);
+        }
+
+        if (patched > 0)
+        {
+            Logger.LogInfo("Successfully patched Steam API; now using v161");
+        }
+        else
+        {
+            Logger.LogError("Failed to patch Steam API; aborting patching");
+            throw new Exception("Failed to patch Steam API");
+        }
     }
 
     private static void PatchConnection(AssemblyDefinition assembly)
