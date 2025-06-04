@@ -23,22 +23,42 @@ static class LoadingPatches
     {
         if (!SteamDeathCapture.isEnabledConfigEntry.Value) return;
 
-        SteamTimeline.StartGamePhase();
-        SteamTimeline.SetTimelineTooltip($"Exploring {__instance.levelNameText.text}", 0);
-        SteamTimeline.SetTimelineGameMode(TimelineGameMode.Playing);
-    }
-}
-
-[HarmonyPatch(typeof(RoundDirector))]
-static class RoundDirectorPatches
-{
-    [HarmonyPostfix, HarmonyPatch(nameof(RoundDirector.ExtractionCompleted))]
-    private static void ExtractionCompletedPostfix(RoundDirector __instance)
-    {
-        if (!SteamDeathCapture.isEnabledConfigEntry.Value) return;
-
-        SteamTimeline.EndGamePhase();
-        SteamTimeline.SetTimelineGameMode(TimelineGameMode.Staging);
+        if (SemiFunc.IsMainMenu() || SemiFunc.RunIsLobby() || SemiFunc.RunIsLobbyMenu())
+        {
+            SteamTimeline.EndGamePhase();
+            SteamTimeline.SetTimelineGameMode(TimelineGameMode.Menus);
+        }
+        else if (SemiFunc.RunIsShop())
+        {
+            SteamTimeline.SetTimelineTooltip("Shopping", 0);
+            SteamTimeline.SetTimelineGameMode(TimelineGameMode.Staging);
+        }
+        else if (SemiFunc.RunIsArena())
+        {
+            if (SemiFunc.IsMultiplayer())
+            {
+                SteamTimeline.AddInstantaneousTimelineEvent(
+                    "Deathmatch",
+                    "Battling to become the biggest loser!",
+                    "steam_combat",
+                    0,
+                    3,
+                    TimelineEventClipPriority.Standard
+                );
+                SteamTimeline.SetTimelineGameMode(TimelineGameMode.Playing);
+            }
+            else
+            {
+                SteamTimeline.ClearTimelineTooltip(0);
+                SteamTimeline.EndGamePhase();
+            }
+        }
+        else if (SemiFunc.RunIsLevel())
+        {
+            SteamTimeline.StartGamePhase();
+            SteamTimeline.SetTimelineTooltip($"Exploring {__instance.levelNameText.text}", 0);
+            SteamTimeline.SetTimelineGameMode(TimelineGameMode.Playing);
+        }
     }
 }
 
@@ -49,6 +69,11 @@ static class PlayerControllerPatches
     private static void PlayerDeathDonePostfix(PlayerAvatar __instance)
     {
         if (!SteamDeathCapture.isEnabledConfigEntry.Value) return;
+
+        if (SemiFunc.IsMultiplayer() && SemiFunc.RunIsArena())
+        {
+            return;
+        }
 
         var handle = SteamTimeline.AddInstantaneousTimelineEvent(
             "Death",
