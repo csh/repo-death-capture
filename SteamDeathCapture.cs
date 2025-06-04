@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace SteamDeathCapture;
 
-[BepInPlugin("smrkn.SteamDeathCapture", "SteamDeathCapture", "1.0")]
+[BepInPlugin("com.smrkn.repo-death-capture", "DeathCapture", "0.1.0")]
 public class SteamDeathCapture : BaseUnityPlugin
 {
     internal static SteamDeathCapture Instance { get; private set; } = null!;
