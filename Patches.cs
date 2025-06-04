@@ -70,7 +70,7 @@ static class PlayerControllerPatches
     {
         if (!SteamDeathCapture.isEnabledConfigEntry.Value) return;
 
-        if (SemiFunc.IsMultiplayer() && SemiFunc.RunIsArena())
+        if (SemiFunc.IsMultiplayer() == false && SemiFunc.RunIsArena())
         {
             return;
         }
