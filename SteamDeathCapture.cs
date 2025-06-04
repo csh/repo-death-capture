@@ -3,7 +3,7 @@ using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
 
-namespace SteamDeathCapture;
+namespace RepoDeathCapture;
 
 [BepInPlugin("com.smrkn.repo-death-capture", "DeathCapture", "0.1.0")]
 public class SteamDeathCapture : BaseUnityPlugin

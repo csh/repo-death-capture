@@ -2,19 +2,7 @@
 using Steamworks;
 using UnityEngine;
 
-namespace SteamDeathCapture;
-
-[HarmonyPatch(typeof(MainMenuOpen))]
-static class MainMenuPatches
-{
-    [HarmonyPostfix, HarmonyPatch(nameof(MainMenuOpen.Start))]
-    private static void StartPostfix()
-    {
-        SteamTimeline.EndGamePhase();
-        SteamTimeline.ClearTimelineTooltip(0);
-        SteamTimeline.SetTimelineGameMode(TimelineGameMode.Menus);
-    }
-}
+namespace RepoDeathCapture;
 
 [HarmonyPatch(typeof(LoadingUI))]
 static class LoadingPatches
@@ -54,7 +42,7 @@ static class PlayerControllerPatches
     {
         SteamTimeline.AddInstantaneousTimelineEvent(
             "Death",
-            $"You died at {Time.timeSinceLevelLoad:0.00} seconds.",
+            $"You died!",
             "steam_death",
             1,
             0,
