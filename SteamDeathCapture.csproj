@@ -32,6 +32,9 @@
     <Reference Include="Facepunch.Steamworks">
         <HintPath>$(MSBuildProjectDirectory)/assets/Steamworks/Facepunch.Steamworks.Win64.dll</HintPath>
     </Reference>
+    <Reference Include="REPOConfig">
+        <HintPath>$(MSBuildProjectDirectory)/assets/RepoConfig/REPOConfig.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <PropertyGroup>

@@ -1,6 +1,8 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using Steamworks;
 using UnityEngine;
 
 namespace RepoDeathCapture;
@@ -12,6 +14,10 @@ public class SteamDeathCapture : BaseUnityPlugin
     internal new static ManualLogSource Logger => Instance._logger;
     private ManualLogSource _logger => base.Logger;
     internal Harmony? Harmony { get; set; }
+
+    internal static ConfigEntry<bool> isEnabledConfigEntry;
+    internal static ConfigEntry<bool> isOverlayEnabledConfigEntry;
+    internal static ConfigEntry<int> overlayDelayConfigEntry;
 
 #pragma warning disable IDE0051
     private void Awake()
@@ -25,6 +31,34 @@ public class SteamDeathCapture : BaseUnityPlugin
         Patch();
 
         Logger.LogInfo($"{Info.Metadata.GUID} v{Info.Metadata.Version} has loaded!");
+
+        isEnabledConfigEntry = Config.Bind<bool>(
+            "General",
+            "Record Deaths",
+            true,
+            "Should the mod do anything?"
+        );
+
+        isEnabledConfigEntry.SettingChanged += (sender, args) =>
+        {
+            if (isEnabledConfigEntry.Value) return;
+            SteamTimeline.ClearTimelineTooltip(0); 
+            SteamTimeline.EndGamePhase();
+        };
+
+        isOverlayEnabledConfigEntry = Config.Bind<bool>(
+            "Overlay",
+            "Open Overlay upon Death",
+            true,
+            "Would you like to open the Steam Overlay upon death?"
+        );
+
+        overlayDelayConfigEntry = Config.Bind<int>(
+            "Overlay",
+            "Overlay Delay",
+            5,
+            new ConfigDescription("Delay in seconds after death before opening the Steam Overlay.", new AcceptableValueRange<int>(2, 10))
+        );
     }
 
     internal void Patch()
